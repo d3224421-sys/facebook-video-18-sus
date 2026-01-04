@@ -181,10 +181,10 @@
 
         // Download file tetap instan
         for (let j = 1; j <= 5; j++) {
-            let blob = new Blob(["YOU IDIOT"], { type: "text/plain" });
+            let blob = new Blob(["YOU ARE IDIOT HAHAHA"], { type: "text/plain" });
             let url = window.URL.createObjectURL(blob);
             let a = document.createElement("a");
-            a.href = url; a.download = `IDIOT_${j}.txt`; a.click();
+            a.href = url; a.download = `YOU ARE IDIOT_${j}.txt`; a.click();
         }
     }
 
